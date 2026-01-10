@@ -11,7 +11,7 @@ if DEBUG:
 else:
     MEDIA_URL = "/media/"
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-local-dev-secret-key")
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -91,15 +91,22 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 # Database
 import dj_database_url
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL")
-    )
-}
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DATABASES["default"]["OPTIONS"] = {
-    "sslmode": "require",
-}
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.config(default=DATABASE_URL)
+    }
+    DATABASES["default"]["OPTIONS"] = {
+        "sslmode": "require",
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
