@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db import models
@@ -46,7 +46,7 @@ class EventListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsAdminOrHR()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
 
 # ==============================
@@ -59,7 +59,7 @@ class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method in ["PUT", "PATCH", "DELETE"]:
             return [IsAdminOrHR()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
 
 # ==============================
