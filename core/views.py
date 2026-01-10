@@ -79,9 +79,12 @@ class DonationListCreateView(generics.ListCreateAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        event_id = self.kwargs.get("event_id")
-        event = Event.objects.get(id=event_id)
-        context["event"] = event  
+        try:
+            event_id = self.kwargs.get("event_id")
+            event = Event.objects.get(id=event_id)
+            context["event"] = event
+        except Event.DoesNotExist:
+            context["event"] = None
         return context
 
     def perform_create(self, serializer):

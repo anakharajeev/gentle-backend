@@ -67,7 +67,13 @@ class DonationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        event = self.context.get('event')  
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError("Authentication credentials were not provided.")
+
+        event = self.context.get('event')
+        if not event:
+            raise serializers.ValidationError("Event not found in context.")
+
         validated_data['donor'] = request.user
         validated_data['event'] = event
         return super().create(validated_data)
