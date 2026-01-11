@@ -51,14 +51,22 @@ class EventSerializer(serializers.ModelSerializer):
 # DONATION SERIALIZER
 # ============================
 class DonationSerializer(serializers.ModelSerializer):
-    donor = serializers.ReadOnlyField(source='donor.username')
-    donor_email = serializers.ReadOnlyField(source='donor.email')
-    event_title = serializers.ReadOnlyField(source='event.title')
+    donor = serializers.ReadOnlyField(source="donor.username")
+    donor_email = serializers.ReadOnlyField(source="donor.email")
+    event_title = serializers.ReadOnlyField(source="event.title")
 
     class Meta:
         model = Donation
-        fields = ['id', 'event_title', 'donor', 'donor_email', 'amount', 'date']
-        read_only_fields = ['donor', 'date', 'event_title']
+        fields = [
+            "id",
+            "event",
+            "event_title",
+            "donor",
+            "donor_email",
+            "amount",
+            "date",
+        ]
+        read_only_fields = ["event", "donor", "date"]
 
     def validate_amount(self, value):
         if value <= 0:
@@ -66,17 +74,10 @@ class DonationSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        request = self.context.get('request')
-        event = self.context.get('event')
+        request = self.context["request"]
+        event = self.context["event"]
 
-        if not request or not request.user.is_authenticated:
-            raise serializers.ValidationError("Authentication required.")
+        validated_data["donor"] = request.user
+        validated_data["event"] = event
 
-        if not event:
-            raise serializers.ValidationError("Invalid event.")
-
-        return Donation.objects.create(
-            donor=request.user,
-            event=event,
-            amount=validated_data['amount']
-        )
+        return Donation.objects.create(**validated_data)

@@ -80,40 +80,31 @@ class DonationListCreateView(generics.ListCreateAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['request'] = self.request
-        try:
-            event_id = self.kwargs.get("event_id")
-            event = Event.objects.get(id=event_id)
-            context["event"] = event
-        except Event.DoesNotExist:
-            context["event"] = None
+        context["event"] = Event.objects.get(id=self.kwargs["event_id"])
         return context
 
     def perform_create(self, serializer):
-        try:
-            with transaction.atomic():
-                donation = serializer.save()
-        except serializers.ValidationError as e:
-            return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            serializer.save()
 
         # Send email after saving
-        user = self.request.user
-        if user.email:
-            try:
-                send_mail(
-                    subject=f"Donation Successful - {donation.event.title}",
-                    message=(
-                        f"Hello {user.username},\n\n"
-                        f"Thank you for donating ₹{donation.amount} to '{donation.event.title}'.\n"
-                        f"Your donation has been successfully recorded.\n\n"
-                        f"Regards,\nEvent Management Team"
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
+        # user = self.request.user
+        # if user.email:
+        #     try:
+        #         send_mail(
+        #             subject=f"Donation Successful - {donation.event.title}",
+        #             message=(
+        #                 f"Hello {user.username},\n\n"
+        #                 f"Thank you for donating ₹{donation.amount} to '{donation.event.title}'.\n"
+        #                 f"Your donation has been successfully recorded.\n\n"
+        #                 f"Regards,\nEvent Management Team"
+        #             ),
+        #             from_email=settings.DEFAULT_FROM_EMAIL,
+        #             recipient_list=[user.email],
+        #             fail_silently=True,
+        #         )
+        #     except Exception:
+        #         pass
 
 # ==============================
 # USER PROFILE
