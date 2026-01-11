@@ -7,6 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.db import models
 from django.db.models import Count, Sum
 from django.db.models import Q
+from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import date
@@ -79,6 +80,7 @@ class DonationListCreateView(generics.ListCreateAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
+        context['request'] = self.request
         try:
             event_id = self.kwargs.get("event_id")
             event = Event.objects.get(id=event_id)
@@ -88,8 +90,11 @@ class DonationListCreateView(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        with transaction.atomic():
-            donation = serializer.save()
+        try:
+            with transaction.atomic():
+                donation = serializer.save()
+        except serializers.ValidationError as e:
+            return Response({"error": e.detail}, status=status.HTTP_400_BAD_REQUEST)
 
         # Send email after saving
         user = self.request.user

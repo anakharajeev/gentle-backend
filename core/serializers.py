@@ -57,8 +57,8 @@ class DonationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Donation
-        fields = ['id', 'event', 'event_title', 'donor', 'donor_email', 'amount', 'date']
-        read_only_fields = ['donor', 'date', 'event', 'event_title']
+        fields = ['id', 'event_title', 'donor', 'donor_email', 'amount', 'date']
+        read_only_fields = ['donor', 'date', 'event_title']
 
     def validate_amount(self, value):
         if value <= 0:
@@ -67,13 +67,16 @@ class DonationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            raise serializers.ValidationError("Authentication credentials were not provided.")
-
         event = self.context.get('event')
-        if not event:
-            raise serializers.ValidationError("Event not found in context.")
 
-        validated_data['donor'] = request.user
-        validated_data['event'] = event
-        return super().create(validated_data)
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError("Authentication required.")
+
+        if not event:
+            raise serializers.ValidationError("Invalid event.")
+
+        return Donation.objects.create(
+            donor=request.user,
+            event=event,
+            amount=validated_data['amount']
+        )
