@@ -88,7 +88,8 @@ class DonationListCreateView(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        donation = serializer.save()
+        with transaction.atomic():
+            donation = serializer.save()
 
         # Send email after saving
         user = self.request.user
@@ -104,10 +105,10 @@ class DonationListCreateView(generics.ListCreateAPIView):
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
-                    fail_silently=False,
+                    fail_silently=True,
                 )
-            except Exception as e:
-                print("Email send error:", e)
+            except Exception:
+                pass
 
 # ==============================
 # USER PROFILE
