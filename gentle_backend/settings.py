@@ -15,12 +15,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-local-dev-secret-key")
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://gentle-app.vercel.app",
-    "https://gentle-backend.onrender.com",
+    "https://gentle-frontend-app.vercel.app",
 ]
 
 ALLOWED_HOSTS = [
@@ -155,7 +154,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://gentle-frontend-app.vercel.app",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = False
+
 
 CORS_ALLOW_HEADERS = [
     "authorization",      
